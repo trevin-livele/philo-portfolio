@@ -1,0 +1,152 @@
+import React, { useState, useEffect } from "react";
+import { BlogPost } from "@/entities/BlogPost";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Clock, Calendar, ArrowRight } from "lucide-react";
+import { format } from "date-fns";
+
+import BlogPostCard from "../components/blog/BlogPostCard";
+import FeaturedPost from "../components/blog/FeaturedPost";
+
+const categories = [
+  { value: "all", label: "All Posts" },
+  { value: "monitoring-evaluation", label: "M&E" },
+  { value: "data-analysis", label: "Data Analysis" },
+  { value: "methodology", label: "Methodology" },
+  { value: "case-study", label: "Case Studies" },
+  { value: "insights", label: "Insights" }
+];
+
+export default function Blog() {
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  useEffect(() => {
+    filterPosts();
+  }, [posts, selectedCategory, searchTerm]);
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    const fetchedPosts = await BlogPost.filter({ published: true }, "-created_date");
+    setPosts(fetchedPosts);
+    setIsLoading(false);
+  };
+
+  const filterPosts = () => {
+    let filtered = posts;
+
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter(post => 
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    setFilteredPosts(filtered);
+  };
+
+  const featuredPost = posts.find(post => post.featured) || posts[0];
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <section className="bg-white border-b border-slate-200 py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              M&E Insights & Analysis
+            </h1>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Exploring the intersection of data, evaluation, and development impact through research and practical insights
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Post */}
+      {featuredPost && (
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-6">
+            <FeaturedPost post={featuredPost} />
+          </div>
+        </section>
+      )}
+
+      {/* Filters */}
+      <section className="py-8 bg-white border-t border-slate-200">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Input
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+              <TabsList className="bg-slate-100">
+                {categories.map(category => (
+                  <TabsTrigger key={category.value} value={category.value}>
+                    {category.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Posts Grid */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array(6).fill(0).map((_, i) => (
+                <Card key={i} className="border-0 shadow-lg">
+                  <div className="w-full h-48 bg-slate-200 animate-pulse rounded-t-lg"></div>
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-slate-200 rounded animate-pulse mb-4"></div>
+                    <div className="h-6 bg-slate-200 rounded animate-pulse mb-2"></div>
+                    <div className="h-4 bg-slate-200 rounded animate-pulse w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredPosts.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPosts.map((post) => (
+                <BlogPostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-10 h-10 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">No posts found</h3>
+              <p className="text-slate-600">Try adjusting your search or category filter</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

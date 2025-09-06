@@ -1,0 +1,323 @@
+
+import React, { useState, useEffect } from "react";
+import { InvokeLLM } from "@/integrations/Core";
+import { MLProject, PMProject } from "@/entities/all";
+import { User } from "@/entities/User";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Github, Loader2, CheckCircle, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
+
+import ProjectPreview from "../components/github/ProjectPreview";
+
+export default function AddFromGitHub() {
+  const [githubUrl, setGithubUrl] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [projectType, setProjectType] = useState("ml");
+
+  // New state variables for admin access
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const user = await User.me();
+      if (user && user.role === 'admin') {
+        setIsAdmin(true);
+      } else {
+        setError("Access denied. Admin privileges required.");
+        setIsAdmin(false);
+      }
+    } catch (error) {
+      setError("Please log in to access this feature.");
+      setIsAdmin(false);
+    }
+    setLoading(false);
+  };
+
+  const isValidGitHubUrl = (url) => {
+    const githubPattern = /^https:\/\/github\.com\/[\w\-\.]+\/[\w\-\.]+\/?$/;
+    return githubPattern.test(url.trim());
+  };
+
+  const analyzeRepository = async () => {
+    if (!isValidGitHubUrl(githubUrl)) {
+      setError("Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo-name)");
+      return;
+    }
+
+    setAnalyzing(true);
+    setError(null);
+    setAnalysisResult(null);
+
+    try {
+      const prompt = `
+        Analyze this GitHub repository: ${githubUrl}
+        
+        Please provide a comprehensive analysis including:
+        1. Project title and description
+        2. Technical approach and methodologies used
+        3. Technologies, programming languages, and frameworks
+        4. Key features and capabilities
+        5. Results, achievements, or impact (if mentioned)
+        6. Whether this appears to be a machine learning project, data engineering project, web development, or other type
+        7. Problem statement or use case it addresses
+        8. Any M&E, monitoring, evaluation, or analytics components
+        
+        Focus on extracting information that would be useful for a professional portfolio showcase.
+        Look at the README file, code files, and repository metadata for comprehensive insights.
+      `;
+
+      const result = await InvokeLLM({
+        prompt: prompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Project title" },
+            description: { type: "string", description: "Detailed project description" },
+            problem_statement: { type: "string", description: "Problem this project solves" },
+            technical_approach: { type: "string", description: "Technical approach and methodology" },
+            technologies: { 
+              type: "array", 
+              items: { type: "string" },
+              description: "List of technologies used"
+            },
+            project_type: { 
+              type: "string", 
+              enum: ["machine-learning", "data-engineering", "web-development", "automation", "analytics", "other"],
+              description: "Type of project"
+            },
+            key_features: {
+              type: "array",
+              items: { type: "string" },
+              description: "Key features or capabilities"
+            },
+            results_impact: { type: "string", description: "Results, achievements, or impact" },
+            ml_category: {
+              type: "string",
+              enum: ["predictive-analytics", "impact-assessment", "automated-reporting", "data-quality", "survey-analysis"],
+              description: "ML project category if applicable"
+            },
+            suitable_for_portfolio: { type: "boolean", description: "Whether this is suitable for a professional portfolio" },
+            confidence_score: { type: "number", description: "Confidence in the analysis (0-100)" }
+          }
+        }
+      });
+
+      if (result.suitable_for_portfolio && result.confidence_score > 70) {
+        setAnalysisResult({
+          ...result,
+          github_url: githubUrl,
+          demo_url: "", // User can add this later
+          image_url: "", // User can add this later
+        });
+      } else {
+        setError("Unable to extract sufficient information from this repository. Please ensure it has a detailed README file or try a different repository.");
+      }
+
+    } catch (error) {
+      setError("Error analyzing the repository. Please check the URL and try again.");
+      console.error("Analysis error:", error);
+    }
+
+    setAnalyzing(false);
+  };
+
+  const handleSave = async (projectData, type) => {
+    try {
+      if (type === "ml") {
+        await MLProject.create({
+          title: projectData.title,
+          description: projectData.description,
+          problem_statement: projectData.problem_statement,
+          approach: projectData.technical_approach,
+          technologies: projectData.technologies,
+          results: projectData.results_impact,
+          github_url: projectData.github_url,
+          demo_url: projectData.demo_url,
+          image_url: projectData.image_url,
+          category: projectData.ml_category || "predictive-analytics",
+          status: "completed"
+        });
+      } else if (type === "pm") {
+        await PMProject.create({
+          title: projectData.title,
+          description: projectData.description,
+          role: "Technical Lead", // Default role
+          sector: "economic-development", // Default sector
+          key_responsibilities: projectData.key_features || [],
+          key_achievements: [projectData.results_impact],
+          tools: projectData.technologies,
+          status: "completed",
+          start_date: new Date().toISOString().split('T')[0],
+          end_date: new Date().toISOString().split('T')[0]
+        });
+      }
+      
+      // Reset form
+      setGithubUrl("");
+      setAnalysisResult(null);
+      alert(`Project successfully added to ${type === "ml" ? "ML Projects" : "Project Management"}!`);
+      
+    } catch (error) {
+      setError("Error saving project. Please try again.");
+      console.error("Save error:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-slate-200 rounded-full animate-pulse mb-4 mx-auto"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-6">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-slate-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">Access Restricted</h1>
+          <p className="text-slate-600 mb-6">
+            This page is only accessible to administrators. Please contact the site owner if you believe this is an error.
+          </p>
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <section className="bg-white border-b border-slate-200 py-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-slate-800 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Github className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+            Add Project from GitHub
+          </h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Automatically analyze your GitHub repositories and add them to your portfolio with AI-powered content extraction.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          {!analysisResult ? (
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center gap-3 text-2xl">
+                  <Sparkles className="w-6 h-6 text-emerald-600" />
+                  Repository Analyzer
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    GitHub Repository URL
+                  </label>
+                  <div className="flex gap-3">
+                    <Input
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="https://github.com/username/repository-name"
+                      className="flex-1"
+                      disabled={analyzing}
+                    />
+                    <Button 
+                      onClick={analyzeRepository}
+                      disabled={analyzing || !githubUrl.trim()}
+                      className="bg-slate-900 hover:bg-slate-800 px-8"
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Analyze
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {/* How it works */}
+                <div className="bg-emerald-50 rounded-lg p-6 border border-emerald-200">
+                  <h3 className="font-semibold text-emerald-800 mb-3">How it works:</h3>
+                  <ul className="space-y-2 text-emerald-700">
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      AI analyzes your repository's README, code, and metadata
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      Extracts project details, technologies, and achievements
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      Pre-fills portfolio forms with professional descriptions
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                      You review, edit, and save to your portfolio
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Example URLs */}
+                <div className="bg-slate-50 rounded-lg p-4 border">
+                  <h4 className="font-medium text-slate-900 mb-2">Example URLs:</h4>
+                  <div className="space-y-1 text-sm text-slate-600">
+                    <div>• https://github.com/username/ml-predictive-model</div>
+                    <div>• https://github.com/username/data-visualization-dashboard</div>
+                    <div>• https://github.com/username/survey-automation-tool</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <ProjectPreview 
+              analysisResult={analysisResult}
+              onSave={handleSave}
+              onReset={() => setAnalysisResult(null)}
+            />
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

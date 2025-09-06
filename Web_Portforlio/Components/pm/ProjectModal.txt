@@ -1,0 +1,78 @@
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { GanttChart, CheckCircle, Clock, X, Calendar } from "lucide-react";
+import { format } from "date-fns";
+
+export default function ProjectModal({ project, onClose }) {
+  if (!project) return null;
+
+  return (
+    <Dialog open={!!project} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-slate-900">{project.title}</span>
+            <Button variant="ghost" size="icon" onClick={onClose}><X className="w-5 h-5" /></Button>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6 mt-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            <Badge variant="secondary" className="px-3 py-1 text-base">{project.role}</Badge>
+            <Badge variant="outline" className="px-3 py-1 text-base border-slate-300">
+              {project.client}
+            </Badge>
+            <Badge variant="outline" className="px-3 py-1 text-base border-slate-300 flex items-center gap-2">
+              <Calendar className="w-4 h-4"/>
+              {project.start_date && format(new Date(project.start_date), "MMM yyyy")} - {project.end_date && format(new Date(project.end_date), "MMM yyyy")}
+            </Badge>
+          </div>
+          
+          <p className="text-slate-600 leading-relaxed text-lg">{project.description}</p>
+          
+          {project.key_responsibilities && (
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">Key Responsibilities</h3>
+              <ul className="space-y-2 list-disc list-inside">
+                {project.key_responsibilities.map((item, index) => (
+                  <li key={index} className="text-slate-600">{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {project.key_achievements && (
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">Key Achievements</h3>
+              <ul className="space-y-2">
+                {project.key_achievements.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-600">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {project.tools && (
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">Tools & Technologies</h3>
+              <div className="flex flex-wrap gap-2">
+                {project.tools.map((tool, index) => (
+                  <Badge key={index} className="bg-emerald-50 text-emerald-700 border-emerald-200 border">{tool}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="pt-4 border-t border-slate-200">
+            <Button variant="outline" onClick={onClose}>Close</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

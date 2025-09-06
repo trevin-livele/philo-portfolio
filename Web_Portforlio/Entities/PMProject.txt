@@ -1,0 +1,84 @@
+{
+  "name": "PMProject",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Project title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description"
+    },
+    "client": {
+      "type": "string",
+      "description": "Client or organization"
+    },
+    "sector": {
+      "type": "string",
+      "enum": [
+        "healthcare",
+        "education",
+        "agriculture",
+        "governance",
+        "environment",
+        "social-development",
+        "economic-development"
+      ],
+      "description": "Sector of work"
+    },
+    "role": {
+      "type": "string",
+      "description": "Your role in the project"
+    },
+    "key_responsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key responsibilities undertaken"
+    },
+    "key_achievements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key achievements or outcomes"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Project management tools used"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "in-progress",
+        "planning"
+      ],
+      "default": "completed",
+      "description": "Project status"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "sector",
+    "role"
+  ]
+}

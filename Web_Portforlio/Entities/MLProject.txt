@@ -1,0 +1,72 @@
+{
+  "name": "MLProject",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Project title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description"
+    },
+    "problem_statement": {
+      "type": "string",
+      "description": "The M&E problem this ML solution addresses"
+    },
+    "approach": {
+      "type": "string",
+      "description": "ML approach and algorithms used"
+    },
+    "technologies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Technologies and tools used"
+    },
+    "results": {
+      "type": "string",
+      "description": "Key results and impact"
+    },
+    "github_url": {
+      "type": "string",
+      "description": "GitHub repository URL"
+    },
+    "demo_url": {
+      "type": "string",
+      "description": "Live demo URL"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Project screenshot or visualization"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "predictive-analytics",
+        "impact-assessment",
+        "automated-reporting",
+        "data-quality",
+        "survey-analysis"
+      ],
+      "description": "ML project category"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "in-progress",
+        "prototype"
+      ],
+      "default": "completed",
+      "description": "Project status"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "approach",
+    "category"
+  ]
+}

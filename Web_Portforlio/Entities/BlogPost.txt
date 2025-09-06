@@ -1,0 +1,54 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Blog post title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Blog post content in markdown"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Brief summary of the post"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "monitoring-evaluation",
+        "data-analysis",
+        "methodology",
+        "case-study",
+        "insights"
+      ],
+      "description": "Post category"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Post tags"
+    },
+    "featured_image": {
+      "type": "string",
+      "description": "URL to featured image"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the post is published"
+    },
+    "reading_time": {
+      "type": "number",
+      "description": "Estimated reading time in minutes"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "category"
+  ]
+}

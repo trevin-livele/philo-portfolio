@@ -1,0 +1,161 @@
+import React, { useState, useEffect } from "react";
+import { PMProject } from "@/entities/PMProject";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, GanttChart } from "lucide-react";
+
+import ProjectCard from "../components/pm/ProjectCard";
+import ProjectModal from "../components/pm/ProjectModal";
+
+const sectors = [
+  { value: "all", label: "All Sectors" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "education", label: "Education" },
+  { value: "governance", label: "Governance" }
+];
+
+export default function ProjectManagement() {
+  const [projects, setProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [selectedSector, setSelectedSector] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  useEffect(() => {
+    filterProjects();
+  }, [projects, selectedSector, searchTerm]);
+
+  const loadProjects = async () => {
+    setIsLoading(true);
+    const fetchedProjects = await PMProject.list("-created_date");
+    setProjects(fetchedProjects);
+    setIsLoading(false);
+  };
+
+  const filterProjects = () => {
+    let filtered = projects;
+    if (selectedSector !== "all") {
+      filtered = filtered.filter(p => p.sector === selectedSector);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(p =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.tools?.some(t => t.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    setFilteredProjects(filtered);
+  };
+  
+  const featuredProjects = projects.filter(p => p.featured);
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <section className="bg-white border-b border-slate-200 py-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+            Project Management Showcase
+          </h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Successfully leading complex M&E and data projects from inception to completion, ensuring on-time, on-budget, and on-target delivery.
+          </p>
+        </div>
+      </section>
+
+      {featuredProjects.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-6">
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">Featured Projects</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {featuredProjects.map((project) => (
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onSelect={setSelectedProject}
+                  featured={true}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Filters */}
+      <section className="py-8 bg-white border-t border-b border-slate-200 sticky top-0 z-10 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <Input
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Tabs value={selectedSector} onValueChange={setSelectedSector}>
+              <TabsList className="bg-slate-100">
+                {sectors.map(sector => (
+                  <TabsTrigger key={sector.value} value={sector.value}>
+                    {sector.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+      </section>
+
+      {/* Projects Grid */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array(6).fill(0).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="w-full h-48 bg-slate-200 rounded-t-lg"></div>
+                  <CardContent className="p-6 space-y-3">
+                    <div className="h-6 bg-slate-200 rounded"></div>
+                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredProjects.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.map((project) => (
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  onSelect={setSelectedProject}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <GanttChart className="w-10 h-10 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900">No projects found</h3>
+              <p className="text-slate-600">Try adjusting your search or filter.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <ProjectModal 
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,75 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Star, GanttChart, CheckCircle, Clock } from "lucide-react";
+import { format, differenceInMonths } from "date-fns";
+
+const sectorColors = {
+  healthcare: "bg-red-100 text-red-700 border-red-200",
+  education: "bg-blue-100 text-blue-700 border-blue-200",
+  agriculture: "bg-green-100 text-green-700 border-green-200",
+  governance: "bg-purple-100 text-purple-700 border-purple-200",
+  environment: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "social-development": "bg-pink-100 text-pink-700 border-pink-200",
+  "economic-development": "bg-yellow-100 text-yellow-700 border-yellow-200"
+};
+
+const statusIcons = {
+  completed: CheckCircle,
+  "in-progress": Clock
+};
+
+export default function ProjectCard({ project, onSelect, featured = false }) {
+  const sectorColor = sectorColors[project.sector] || "bg-slate-100 text-slate-700 border-slate-200";
+  const StatusIcon = statusIcons[project.status] || CheckCircle;
+
+  const getDuration = () => {
+    if (!project.start_date || !project.end_date) return null;
+    const months = differenceInMonths(new Date(project.end_date), new Date(project.start_date));
+    return `${months} months`;
+  };
+
+  return (
+    <Card className={`border-0 shadow-lg hover-lift overflow-hidden group ${featured ? 'ring-2 ring-emerald-200' : ''}`}>
+      <div className="relative">
+        <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <GanttChart className="w-16 h-16 text-slate-400" />
+        </div>
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Badge className={`${sectorColor} border`}>
+            {project.sector?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </Badge>
+          {featured && (
+            <Badge className="bg-emerald-500 text-white border-0">
+              <Star className="w-3 h-3 mr-1" /> Featured
+            </Badge>
+          )}
+        </div>
+      </div>
+      
+      <CardContent className="p-6">
+        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+          <StatusIcon className={`w-4 h-4 ${project.status === 'completed' ? 'text-green-500' : 'text-yellow-500'}`} />
+          <span>{project.status?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+          {getDuration() && <span className="mx-1">•</span>}
+          {getDuration() && <span>{getDuration()}</span>}
+        </div>
+        
+        <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2">{project.title}</h3>
+        
+        <p className="text-slate-600 mb-4 font-semibold">{project.role}</p>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          {project.tools?.slice(0, 3).map((tool, index) => (
+            <Badge key={index} variant="secondary" className="bg-slate-100 text-slate-700 border text-xs">{tool}</Badge>
+          ))}
+        </div>
+        
+        <Button onClick={() => onSelect(project)} className="w-full justify-between bg-slate-900 text-white hover:bg-slate-800">
+          View Details <ArrowRight className="w-4 h-4" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

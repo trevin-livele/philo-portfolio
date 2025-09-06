@@ -1,0 +1,99 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  BarChart3, 
+  Brain, 
+  Target, 
+  Database, 
+  LineChart, 
+  Users,
+  CheckCircle,
+  TrendingUp
+} from "lucide-react";
+
+const expertiseAreas = [
+  {
+    icon: Target,
+    title: "Program Evaluation",
+    description: "Theory-based evaluations, RCTs, and mixed-methods approaches",
+    skills: ["Impact Assessment", "Theory of Change", "Quasi-experimental Design", "Cost-benefit Analysis"],
+    color: "emerald"
+  },
+  {
+    icon: BarChart3,
+    title: "Data Analytics",
+    description: "Advanced statistical analysis and data visualization",
+    skills: ["Statistical Analysis", "Data Visualization", "Survey Design", "KPI Development"],
+    color: "slate"
+  },
+  {
+    icon: Brain,
+    title: "Machine Learning",
+    description: "Predictive modeling and automated insights for M&E",
+    skills: ["Predictive Analytics", "Natural Language Processing", "Automated Reporting", "Risk Modeling"],
+    color: "emerald"
+  },
+  {
+    icon: Database,
+    title: "Data Systems",
+    description: "Robust data collection and management systems",
+    skills: ["Database Design", "Data Quality", "ETL Processes", "Real-time Dashboards"],
+    color: "slate"
+  }
+];
+
+export default function ExpertiseSection() {
+  return (
+    <section className="py-20 bg-slate-50">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            Core Expertise
+          </h2>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            Comprehensive M&E capabilities combining traditional evaluation methods with cutting-edge technology
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-8">
+          {expertiseAreas.map((area, index) => (
+            <Card key={index} className="border-0 shadow-lg hover-lift bg-white">
+              <CardContent className="p-8">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                    area.color === 'emerald' ? 'bg-emerald-100' : 'bg-slate-100'
+                  }`}>
+                    <area.icon className={`w-7 h-7 ${
+                      area.color === 'emerald' ? 'text-emerald-600' : 'text-slate-600'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">{area.title}</h3>
+                    <p className="text-slate-600 mb-4">{area.description}</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {area.skills.map((skill, skillIndex) => (
+                    <Badge 
+                      key={skillIndex} 
+                      variant="secondary"
+                      className={`${
+                        area.color === 'emerald' 
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                          : 'bg-slate-50 text-slate-700 border-slate-200'
+                      } border`}
+                    >
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

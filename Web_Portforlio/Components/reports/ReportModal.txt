@@ -1,0 +1,118 @@
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink, FileText, BarChart3, X } from "lucide-react";
+
+const sectorColors = {
+  healthcare: "bg-red-100 text-red-700 border-red-200",
+  education: "bg-blue-100 text-blue-700 border-blue-200",
+  agriculture: "bg-green-100 text-green-700 border-green-200",
+  governance: "bg-purple-100 text-purple-700 border-purple-200",
+  environment: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "social-development": "bg-pink-100 text-pink-700 border-pink-200",
+  "economic-development": "bg-yellow-100 text-yellow-700 border-yellow-200"
+};
+
+export default function ReportModal({ report, onClose }) {
+  if (!report) return null;
+
+  const sectorColor = sectorColors[report.sector] || "bg-slate-100 text-slate-700 border-slate-200";
+
+  return (
+    <Dialog open={!!report} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-slate-900">{report.title}</span>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Header Info */}
+          <div className="flex flex-wrap gap-3">
+            <Badge className={`${sectorColor} border`}>
+              {report.sector?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </Badge>
+            {report.client && (
+              <Badge variant="outline" className="border-slate-200">
+                {report.client}
+              </Badge>
+            )}
+          </div>
+          
+          {/* Description */}
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">Description</h3>
+            <p className="text-slate-600 leading-relaxed">{report.description}</p>
+          </div>
+          
+          {/* Methodology */}
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">Methodology</h3>
+            <p className="text-slate-600 leading-relaxed">{report.methodology}</p>
+          </div>
+          
+          {/* Key Findings */}
+          {report.key_findings && report.key_findings.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">Key Findings</h3>
+              <ul className="space-y-2">
+                {report.key_findings.map((finding, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-600">{finding}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {/* Visualizations */}
+          {report.visualizations && report.visualizations.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">Data Visualizations</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {report.visualizations.map((viz, index) => (
+                  <div key={index} className="border border-slate-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BarChart3 className="w-4 h-4 text-emerald-600" />
+                      <span className="font-medium text-slate-900">{viz.title}</span>
+                    </div>
+                    <p className="text-sm text-slate-600 mb-3">{viz.description}</p>
+                    {viz.image_url && (
+                      <img 
+                        src={viz.image_url} 
+                        alt={viz.title}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t border-slate-200">
+            {report.report_file && (
+              <Button 
+                onClick={() => window.open(report.report_file, '_blank')}
+                className="bg-slate-900 hover:bg-slate-800 text-white"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                View Full Report
+              </Button>
+            )}
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

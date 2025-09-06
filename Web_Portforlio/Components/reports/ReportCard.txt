@@ -1,0 +1,86 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FileText, ExternalLink, ArrowRight, Star } from "lucide-react";
+
+const sectorColors = {
+  healthcare: "bg-red-100 text-red-700 border-red-200",
+  education: "bg-blue-100 text-blue-700 border-blue-200",
+  agriculture: "bg-green-100 text-green-700 border-green-200",
+  governance: "bg-purple-100 text-purple-700 border-purple-200",
+  environment: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  "social-development": "bg-pink-100 text-pink-700 border-pink-200",
+  "economic-development": "bg-yellow-100 text-yellow-700 border-yellow-200"
+};
+
+export default function ReportCard({ report, onSelect, featured = false }) {
+  const sectorColor = sectorColors[report.sector] || "bg-slate-100 text-slate-700 border-slate-200";
+
+  return (
+    <Card className={`border-0 shadow-lg hover-lift overflow-hidden group ${
+      featured ? 'ring-2 ring-emerald-200' : ''
+    }`}>
+      <div className="relative">
+        <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <FileText className="w-16 h-16 text-slate-400" />
+        </div>
+        <div className="absolute top-4 left-4 flex gap-2">
+          <Badge className={`${sectorColor} border`}>
+            {report.sector?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </Badge>
+          {featured && (
+            <Badge className="bg-emerald-500 text-white border-0">
+              <Star className="w-3 h-3 mr-1" />
+              Featured
+            </Badge>
+          )}
+        </div>
+      </div>
+      
+      <CardContent className="p-6">
+        <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2">
+          {report.title}
+        </h3>
+        
+        <p className="text-slate-600 mb-4 line-clamp-3">
+          {report.description}
+        </p>
+        
+        {report.client && (
+          <div className="text-sm text-slate-500 mb-4">
+            <strong>Client:</strong> {report.client}
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-500">
+            {report.visualizations?.length || 0} visualizations
+          </div>
+          <div className="flex gap-2">
+            {report.report_file && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(report.report_file, '_blank');
+                }}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            )}
+            <Button 
+              size="sm" 
+              onClick={() => onSelect(report)}
+              className="bg-slate-900 hover:bg-slate-800 text-white"
+            >
+              View Details
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

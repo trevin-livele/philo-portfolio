@@ -1,0 +1,337 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  CheckCircle, 
+  ArrowLeft, 
+  Save, 
+  Brain, 
+  GanttChart, 
+  Sparkles,
+  Github,
+  ExternalLink,
+  Image
+} from "lucide-react";
+
+const mlCategories = [
+  { value: "predictive-analytics", label: "Predictive Analytics" },
+  { value: "impact-assessment", label: "Impact Assessment" },
+  { value: "automated-reporting", label: "Automated Reporting" },
+  { value: "data-quality", label: "Data Quality" },
+  { value: "survey-analysis", label: "Survey Analysis" }
+];
+
+const sectors = [
+  { value: "healthcare", label: "Healthcare" },
+  { value: "education", label: "Education" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "governance", label: "Governance" },
+  { value: "environment", label: "Environment" },
+  { value: "social-development", label: "Social Development" },
+  { value: "economic-development", label: "Economic Development" }
+];
+
+export default function ProjectPreview({ analysisResult, onSave, onReset }) {
+  const [editedData, setEditedData] = useState({
+    ...analysisResult,
+    ml_category: analysisResult.ml_category || "predictive-analytics",
+    sector: "economic-development",
+    role: "Technical Lead"
+  });
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("ml");
+
+  const handleSave = async (type) => {
+    setSaving(true);
+    await onSave(editedData, type);
+    setSaving(false);
+  };
+
+  const updateField = (field, value) => {
+    setEditedData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateArrayField = (field, value) => {
+    const items = value.split('\n').filter(item => item.trim());
+    setEditedData(prev => ({ ...prev, [field]: items }));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Success Header */}
+      <Card className="border-0 shadow-lg bg-emerald-50 border-emerald-200">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-emerald-800 text-lg">Repository Analysis Complete!</h3>
+              <p className="text-emerald-700">
+                AI extracted project information with {editedData.confidence_score}% confidence. 
+                Review and edit the details below, then save to your portfolio.
+              </p>
+            </div>
+            <Button variant="outline" onClick={onReset} className="border-emerald-200 text-emerald-700">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Start Over
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Preview and Edit */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="ml" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Save as ML Project
+          </TabsTrigger>
+          <TabsTrigger value="pm" className="flex items-center gap-2">
+            <GanttChart className="w-4 h-4" />
+            Save as PM Project
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ml">
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Brain className="w-6 h-6 text-purple-600" />
+                Machine Learning Project Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Project Title</Label>
+                  <Input
+                    id="title"
+                    value={editedData.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ml_category">ML Category</Label>
+                  <Select value={editedData.ml_category} onValueChange={(value) => updateField('ml_category', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mlCategories.map(cat => (
+                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editedData.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="problem_statement">Problem Statement</Label>
+                <Textarea
+                  id="problem_statement"
+                  value={editedData.problem_statement}
+                  onChange={(e) => updateField('problem_statement', e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="technical_approach">Technical Approach</Label>
+                <Textarea
+                  id="technical_approach"
+                  value={editedData.technical_approach}
+                  onChange={(e) => updateField('technical_approach', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="demo_url">Demo URL (optional)</Label>
+                  <Input
+                    id="demo_url"
+                    value={editedData.demo_url}
+                    onChange={(e) => updateField('demo_url', e.target.value)}
+                    placeholder="https://your-demo.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="image_url">Project Image URL (optional)</Label>
+                  <Input
+                    id="image_url"
+                    value={editedData.image_url}
+                    onChange={(e) => updateField('image_url', e.target.value)}
+                    placeholder="https://your-image.com/image.jpg"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Technologies (one per line)</Label>
+                <Textarea
+                  value={editedData.technologies?.join('\n') || ''}
+                  onChange={(e) => updateArrayField('technologies', e.target.value)}
+                  rows={4}
+                  placeholder="Python&#10;TensorFlow&#10;Pandas&#10;Flask"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="results_impact">Results & Impact</Label>
+                <Textarea
+                  id="results_impact"
+                  value={editedData.results_impact}
+                  onChange={(e) => updateField('results_impact', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => handleSave('ml')}
+                  disabled={saving}
+                  className="bg-purple-600 hover:bg-purple-700 flex-1"
+                >
+                  {saving ? (
+                    <>Saving...</>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save as ML Project
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pm">
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <GanttChart className="w-6 h-6 text-blue-600" />
+                Project Management Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="pm_title">Project Title</Label>
+                  <Input
+                    id="pm_title"
+                    value={editedData.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sector">Sector</Label>
+                  <Select value={editedData.sector} onValueChange={(value) => updateField('sector', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sectors.map(sector => (
+                        <SelectItem key={sector.value} value={sector.value}>{sector.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pm_description">Project Description</Label>
+                <Textarea
+                  id="pm_description"
+                  value={editedData.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Your Role</Label>
+                <Input
+                  id="role"
+                  value={editedData.role}
+                  onChange={(e) => updateField('role', e.target.value)}
+                  placeholder="e.g., Technical Lead, Project Manager"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Key Responsibilities (one per line)</Label>
+                <Textarea
+                  value={editedData.key_features?.join('\n') || ''}
+                  onChange={(e) => updateArrayField('key_features', e.target.value)}
+                  rows={4}
+                  placeholder="Led technical architecture design&#10;Managed development team&#10;Implemented CI/CD pipeline"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tools & Technologies (one per line)</Label>
+                <Textarea
+                  value={editedData.technologies?.join('\n') || ''}
+                  onChange={(e) => updateArrayField('technologies', e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => handleSave('pm')}
+                  disabled={saving}
+                  className="bg-blue-600 hover:bg-blue-700 flex-1"
+                >
+                  {saving ? (
+                    <>Saving...</>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save as PM Project
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Repository Info */}
+      <Card className="border-0 shadow-lg bg-slate-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Github className="w-5 h-5 text-slate-600" />
+              <span className="text-slate-800 font-medium">Source Repository:</span>
+              <code className="bg-slate-200 px-2 py-1 rounded text-sm">{editedData.github_url}</code>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => window.open(editedData.github_url, '_blank')}>
+              <ExternalLink className="w-4 h-4 mr-1" />
+              View on GitHub
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

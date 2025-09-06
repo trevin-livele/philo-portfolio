@@ -1,0 +1,84 @@
+{
+  "name": "DataReport",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Report title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Report description"
+    },
+    "methodology": {
+      "type": "string",
+      "description": "Data analysis methodology used"
+    },
+    "key_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key findings from the analysis"
+    },
+    "visualizations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "chart",
+              "map",
+              "dashboard",
+              "infographic"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Data visualizations"
+    },
+    "client": {
+      "type": "string",
+      "description": "Client or organization"
+    },
+    "sector": {
+      "type": "string",
+      "enum": [
+        "healthcare",
+        "education",
+        "agriculture",
+        "governance",
+        "environment",
+        "social-development",
+        "economic-development"
+      ],
+      "description": "Sector of work"
+    },
+    "report_file": {
+      "type": "string",
+      "description": "URL to full report PDF"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to feature this report"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "methodology",
+    "sector"
+  ]
+}
