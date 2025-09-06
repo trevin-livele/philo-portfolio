@@ -79,10 +79,10 @@ export default function PortfolioLayout({ children }: PortfolioLayoutProps) {
   const [navigationItems, setNavigationItems] = useState(getNavigationItems(false));
 
   useEffect(() => {
-    // For now, we'll set admin to false by default
+    // For now, we'll set admin to true so you can access all features
     // In a real implementation, you would check user authentication here
-    setIsAdmin(false);
-    setNavigationItems(getNavigationItems(false));
+    setIsAdmin(true);
+    setNavigationItems(getNavigationItems(true));
   }, []);
 
   return (
